@@ -1,8 +1,10 @@
-import React, { Component } from 'react';
+import React, { Component, Fragment } from 'react';
+import { BrowserRouter as Router, Switch, Route } from 'react-router-dom';
 import Navbar from './components/layout/Navbar';
 import Users from './components/users/Users';
 import Search from './components/users/Search';
-
+import Alert from './components/layout/Alert';
+import About from './components/pages/About';
 import axios from 'axios';
 import './App.css';
 
@@ -10,6 +12,7 @@ class App extends Component {
 	state = {
 		users: [],
 		loading: false,
+		alert: null,
 	};
 
 	// Users load on load
@@ -36,17 +39,52 @@ class App extends Component {
 		console.log(text);
 	};
 
-	render() {
-		// Users passing as props to users.js (2 props)
-		return (
-			<div className='App'>
-				<Navbar />
+	// Clear users from state
 
-				<div className='container'>
-					<Search searchUsers={this.searchUsers} />
-					<Users loading={this.state.loading} users={this.state.users} />
+	clearUsers = () => this.setState({ users: [], loading: false });
+
+	// Set Alert
+
+	setAlert = (msg, type) => {
+		this.setState({ alert: { msg, type } });
+
+		setTimeout(() => this.setState({ alert: null }), 3000);
+	};
+
+	render() {
+		// Destructuring
+		const { users, loading } = this.state;
+		// Users passing as props to users.js (2 props)
+
+		return (
+			<Router>
+				<div className='App'>
+					<Navbar />
+
+					<div className='container'>
+						<Alert alert={this.state.alert} />
+
+						<Switch>
+							<Route
+								exact
+								path='/'
+								render={props => (
+									<Fragment>
+										<Search
+											searchUsers={this.searchUsers}
+											clearUsers={this.clearUsers}
+											showClear={users.length > 0 ? true : false}
+											setAlert={this.setAlert}
+										/>
+										<Users loading={loading} users={users} />
+									</Fragment>
+								)}
+							/>
+							<Route exact path='/about' component={About} />
+						</Switch>
+					</div>
 				</div>
-			</div>
+			</Router>
 		);
 	}
 }
